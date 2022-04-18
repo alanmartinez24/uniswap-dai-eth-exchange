@@ -158,6 +158,9 @@ export const DaiSwapContextProvider: FC<DaiSwapContextProviderProps> = ({ childr
   useEffect(() => {
     if (routerContract) {
       updateUnitPrice()
+    } else {
+      setEthPrice(null)
+      setDaiPrice(null)
     }
   }, [routerContract])
 

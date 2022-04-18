@@ -1,13 +1,14 @@
 import { FC } from 'react'
+
 import { Box, Button, Chip, Grid, Typography } from '@mui/material'
 
 import { useWallet } from '../contexts/WalletContext'
 import { formatNumber, shortenWalletAddress } from '../utils/helper';
 
 const ConnectWallet: FC = () => {
-  const { ready, walletAddress, connect, ethBalance, daiBalance } = useWallet()
+  const { provider, walletAddress, connect, ethBalance, daiBalance } = useWallet()
 
-  if (!ready) {
+  if (!provider) {
     return (
       <Box display="flex" justifyContent="flex-end">
         <Button onClick={connect}>

@@ -1,6 +1,8 @@
 import React, { ChangeEvent, FC } from 'react'
 import Image from 'next/image'
+
 import { Avatar, Box, InputBase } from '@mui/material';
+
 import { useDaiSwap } from '../contexts/DaiSwapContext';
 
 interface CryptoInputProps {

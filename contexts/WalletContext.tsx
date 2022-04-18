@@ -1,13 +1,13 @@
 import React, { FC, ReactNode, useCallback, useEffect, useState } from 'react'
 import Web3Modal from 'web3modal'
 import { ethers } from 'ethers'
-import { Web3Provider } from '@ethersproject/providers'
+import { Network, Web3Provider } from '@ethersproject/providers'
 
 import { Dai__factory } from '../types/ethers-contracts'
 import useNotification from '../hooks/useNotification'
-import { daiAddress } from '../const';
+import { daiAddress, networkChainId, networkName } from '../const';
 import { wei2Number } from '../utils/helper';
-import { ERROR_WALLET_DISCONNECTED } from '../const/messages';
+import { ERROR_WALLET_DISCONNECTED, msgSwitchToNetwork } from '../const/messages';
 
 type Provider = Web3Provider | null;
 
@@ -17,12 +17,10 @@ interface WalletContextInterface {
   walletAddress: string | null;
   ethBalance: number | null;
   daiBalance: number | null;
-  ready: boolean;
 }
 
 const defaultContext = {
   provider: null,
-  ready: false,
   connect: () => Promise.resolve(null),
   walletAddress: null,
   ethBalance: null,
@@ -38,25 +36,33 @@ interface WalletContextProviderProps {
 export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children }) => {
   const { notifyError } = useNotification()
 
-  const [ready, setReady] = useState(false)
   const [provider, setProvider] = useState<Provider>(null)
   const [walletAddress, setWalletAddress] = useState<string>(null)
   const [ethBalance, setEthBalance] = useState<number>(null)
   const [daiBalance, setDaiBalance] = useState<number>(null)
 
+
+
   // Initialize context with provider
-  const initializeProvider = useCallback(async (provider: Web3Provider) => {
+  const initializeProvider = async (provider: Web3Provider) => {
     const accounts = await provider.listAccounts()
 
     // If no account is connected to wallet, just ignore the provider.
     if (accounts.length === 0) {
       return
     }
+    console.log('come here')
+
+    const network = await provider.getNetwork()
+
+    if (network.chainId !== networkChainId) {
+      notifyError(msgSwitchToNetwork(networkName))
+      return
+    }
 
     setWalletAddress(accounts[0])
     setProvider(provider)
-    setReady(true)
-  }, [])
+  }
 
   // Shows web3 modal for connecting wallet.
   const connect = useCallback(async () => {
@@ -77,6 +83,10 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
   // Update ETH/DAI balance.
   const updateBalance = useCallback(async () => {
+    if (!provider || !walletAddress) {
+      return
+    }
+
     const daiContract = Dai__factory.connect(daiAddress, provider!)
 
     const [eth, dai] = await Promise.all([
@@ -90,7 +100,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
   // Restore provider if wallet had been connected.
   useEffect(() => {
+    console.log('hello there')
     try {
+      console.log('hello')
       const provider = new Web3Provider(window.ethereum, 'any')
       initializeProvider(provider)
     } catch {}
@@ -100,6 +112,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
   useEffect(() => {
     if (walletAddress) {
       updateBalance()
+    } else {
+      setDaiBalance(null)
+      setEthBalance(null)
     }
   }, [walletAddress])
 
@@ -137,26 +152,52 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
         updateBalance()
       })
 
-      // Monitor wallet disconnection.
-      const { ethereum } = window
-
-      ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length === 0) {
-          notifyError(ERROR_WALLET_DISCONNECTED)
-
-          setProvider(null)
-          setEthBalance(null)
-          setDaiBalance(null)
-          setReady(false)
-          return
-        }
-
-        setWalletAddress(accounts[0])
-      })
+      provider.on('accountsChanged', () => console.log('Hello net change'))
     })()
 
     return () => provider.removeAllListeners()
   }, [provider])
+
+  useEffect(() => {
+    // Monitor wallet disconnection.
+    const { ethereum } = window
+
+    if (!ethereum) {
+      return
+    }
+
+    const onAccountChange = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        notifyError(ERROR_WALLET_DISCONNECTED)
+
+        setWalletAddress(null)
+        setProvider(null)
+        return
+      }
+
+      setWalletAddress(accounts[0])
+    }
+
+    const onNetworkChange = (chainId: string) => {
+
+      if (Number(chainId) === networkChainId) {
+        return
+      }
+
+      notifyError(msgSwitchToNetwork(networkName))
+
+      setWalletAddress(null)
+      setProvider(null)
+    }
+
+    ethereum.on('accountsChanged', onAccountChange)
+    ethereum.on('networkChanged', onNetworkChange)
+
+    return () => {
+      ethereum.removeListener('accountsChanged', onAccountChange)
+      ethereum.removeListener('networkChanged', onNetworkChange)
+    }
+  }, [])
 
   return (
     <WalletContext.Provider
@@ -165,8 +206,7 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
         provider,
         walletAddress,
         ethBalance,
-        daiBalance,
-        ready
+        daiBalance
       }}
     >
       {children}

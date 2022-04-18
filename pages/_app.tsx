@@ -4,8 +4,8 @@ import { SnackbarProvider } from 'notistack';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 
 import { WalletContextProvider } from '../contexts/WalletContext';
-import theme from './themes/theme';
 import { DaiSwapContextProvider } from '../contexts/DaiSwapContext';
+import theme from './themes/theme';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

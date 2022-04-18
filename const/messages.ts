@@ -6,3 +6,5 @@ export const ERROR_WALLET_DISCONNECTED = 'Wallet is disconnected. Please connect
 
 export const MESSAGE_TRANSACTION_SUBMITTED = 'Transaction submitted.'
 export const MESSAGE_TRANSACTION_CONFIRMED = 'Transaction completed.'
+
+export const msgSwitchToNetwork = (network: string) => `Please switch to ${network} to use the app.`
