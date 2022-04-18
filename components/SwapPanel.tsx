@@ -22,18 +22,18 @@ const SwapPanel = () => {
   const [ethAmount, setEthAmount] = useState('0.0')
   const [isInSwap, setIsInSwap] = useState(false)
 
-  const handleChangeDai = async (dai) => {
+  const handleChangeDai = async (dai: string) => {
     setDaiAmount(dai)
 
     const ethOutput = await getEthOutput(Number(dai))
-    setEthAmount(ethOutput > 0 ? String(ethOutput) : '0.0')
+    setEthAmount(ethOutput ? String(ethOutput) : '0.0')
   }
 
-  const handleChangeEth = async (eth) => {
+  const handleChangeEth = async (eth: string) => {
     setEthAmount(eth)
 
     const daiOutput = await getDaiOutput(Number(eth))
-    setDaiAmount(daiOutput > 0 ? String(daiOutput) : '0.0')
+    setDaiAmount(daiOutput ? String(daiOutput) : '0.0')
   }
 
   const handleSwap = async () => {
@@ -44,7 +44,7 @@ const SwapPanel = () => {
       return
     }
 
-    if (daiNumber > daiBalance) {
+    if (daiNumber > daiBalance!) {
       notifyError(ERROR_INSUFFICIENT_AMOUNT_DAI)
       return
     }
@@ -75,7 +75,7 @@ const SwapPanel = () => {
           <Paper elevation={8} className="crypto-input-wrapper-DAI">
             <CryptoInput
               label="DAI"
-              logoUrl={logoDai}
+              logo={logoDai}
               amount={daiAmount}
               onChangeAmount={handleChangeDai}
             />
@@ -89,7 +89,7 @@ const SwapPanel = () => {
                   clickable
                   label="Max"
                   size="small"
-                  onClick={() => handleChangeDai(daiBalance)}
+                  onClick={() => handleChangeDai(String(daiBalance!))}
                   sx={{ ml: 1 }}
                 />
               </Box>
@@ -117,7 +117,7 @@ const SwapPanel = () => {
           <Paper elevation={8} className="crypto-input-wrapper-ETH">
             <CryptoInput
               label="ETH"
-              logoUrl={logoEth}
+              logo={logoEth}
               amount={ethAmount}
               onChangeAmount={handleChangeEth}
             />

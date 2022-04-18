@@ -37,9 +37,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
   const { notifyError } = useNotification()
 
   const [provider, setProvider] = useState<Provider>(null)
-  const [walletAddress, setWalletAddress] = useState<string>(null)
-  const [ethBalance, setEthBalance] = useState<number>(null)
-  const [daiBalance, setDaiBalance] = useState<number>(null)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [ethBalance, setEthBalance] = useState<number | null>(null)
+  const [daiBalance, setDaiBalance] = useState<number | null>(null)
 
   // Initialize context with provider
   const initializeProvider = async (provider: Web3Provider) => {
@@ -71,7 +71,7 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
       initializeProvider(provider)
       return provider
-    } catch (err) {
+    } catch (err: any) {
       notifyError(err.message || 'Failed to connect Wallet')
     }
 
@@ -125,9 +125,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
       // Monitor ERC20 token transactions to the wallet.
       const topicSetsTo = [
         ethers.utils.id("Transfer(address,address,uint256)"),
-        null,
+        [],
         [
-          ethers.utils.hexZeroPad(walletAddress, 32)
+          ethers.utils.hexZeroPad(walletAddress!, 32)
         ]
       ]
 
@@ -139,7 +139,7 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
       const topicSetsFrom = [
         ethers.utils.id("Transfer(address,address,uint256)"),
         [
-          ethers.utils.hexZeroPad(walletAddress, 32)
+          ethers.utils.hexZeroPad(walletAddress!, 32)
         ]
       ]
 
@@ -148,7 +148,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
       })
     })()
 
-    return () => provider.removeAllListeners()
+    return () => {
+      provider.removeAllListeners()
+    }
   }, [provider])
 
   useEffect(() => {

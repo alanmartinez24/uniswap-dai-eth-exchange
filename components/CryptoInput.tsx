@@ -1,5 +1,5 @@
 import React, { ChangeEvent, FC } from 'react'
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 
 import { Avatar, Box, InputBase } from '@mui/material';
 
@@ -7,15 +7,15 @@ import { useWallet } from '../contexts/WalletContext';
 
 interface CryptoInputProps {
   label: string;
-  logoUrl: string;
+  logo: StaticImageData;
   amount: string;
   onChangeAmount: (amount: string) => void;
 }
 
-const CryptoInput: FC<CryptoInputProps> = ({ amount, onChangeAmount, label, logoUrl }) => {
+const CryptoInput: FC<CryptoInputProps> = ({ amount, onChangeAmount, label, logo }) => {
   const { provider } = useWallet()
 
-  const handleChange = (event: ChangeEvent) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = Number(event.target.value)
 
     if (value >= 0) {
@@ -36,7 +36,7 @@ const CryptoInput: FC<CryptoInputProps> = ({ amount, onChangeAmount, label, logo
         }}
       />
       <Avatar>
-        <Image src={logoUrl} alt={label} />
+        <Image src={logo} alt={label} />
       </Avatar>
     </Box>
   )

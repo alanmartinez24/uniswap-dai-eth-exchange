@@ -5,7 +5,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 
 import { WalletContextProvider } from '../contexts/WalletContext';
 import { DaiSwapContextProvider } from '../contexts/DaiSwapContext';
-import theme from './themes/theme';
+import theme from '../themes/theme';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

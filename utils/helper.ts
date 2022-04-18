@@ -16,7 +16,7 @@ export const formatNumber = (number: number) => {
   return number.toFixed(fixedDigits)
 }
 
-export const wei2Number = (wei: BigNumberish): Number => {
+export const wei2Number = (wei: BigNumberish): number => {
   return Number(ethers.utils.formatEther(wei))
 }
 

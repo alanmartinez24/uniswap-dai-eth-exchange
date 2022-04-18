@@ -19,8 +19,8 @@ import {
 } from '../const/messages';
 
 interface DaiSwapContextInterface {
-  getEthOutput: (daiAmount: number) => Promise<number>;
-  getDaiOutput: (ethAmount: number) => Promise<number>;
+  getEthOutput: (daiAmount: number) => Promise<number | null>;
+  getDaiOutput: (ethAmount: number) => Promise<number | null>;
   swapDaiWithEth: (daiAmount: number) => Promise<void>;
   ethPrice: number | null;
   daiPrice: number | null;
@@ -45,8 +45,8 @@ export const DaiSwapContextProvider: FC<DaiSwapContextProviderProps> = ({ childr
   const { notifyError, notifySuccess } = useNotification()
 
   const [isInUpdateUnitPrice, setIsInUpdateUnitPrice] = useState(false)
-  const [ethPrice, setEthPrice] = useState<number>(null) // ETH price in DAI
-  const [daiPrice, setDaiPrice] = useState<number>(null) // DAI price in ETH
+  const [ethPrice, setEthPrice] = useState<number | null>(null) // ETH price in DAI
+  const [daiPrice, setDaiPrice] = useState<number | null>(null) // DAI price in ETH
 
   // Update unit price
   const updateUnitPrice = async () => {
@@ -125,7 +125,7 @@ export const DaiSwapContextProvider: FC<DaiSwapContextProviderProps> = ({ childr
       await transaction.wait()
 
       notifySuccess(MESSAGE_TRANSACTION_CONFIRMED)
-    } catch (err) {
+    } catch (err: any) {
       notifyError(err.message || ERROR_TRANSACTION_FAILED)
     }
   }, [provider])
