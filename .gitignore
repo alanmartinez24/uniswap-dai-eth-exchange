@@ -39,3 +39,7 @@ yarn-error.log*
 
 # Typeschain
 /types
+
+# Cypress
+/cypress/screenshots
+/cypress/videos

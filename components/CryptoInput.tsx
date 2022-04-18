@@ -27,11 +27,13 @@ const CryptoInput: FC<CryptoInputProps> = ({ amount, onChangeAmount, label, logo
     <Box display="flex" alignItems="center">
       <InputBase
         fullWidth
-        className={`crypto-input-${label}`}
         onChange={handleChange}
         value={amount}
         sx={{ flex: 1, mr: 1, fontSize: 24 }}
         disabled={!provider}
+        inputProps={{
+          className: `crypto-input-${label}`
+        }}
       />
       <Avatar>
         <Image src={logoUrl} alt={label} />

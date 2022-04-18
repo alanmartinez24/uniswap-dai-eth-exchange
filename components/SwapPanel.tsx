@@ -11,7 +11,7 @@ import { useDaiSwap } from '../contexts/DaiSwapContext';
 import { formatNumber } from '../utils/helper';
 import { useWallet } from '../contexts/WalletContext';
 import useNotification from '../hooks/useNotification';
-import { ERROR_INSUFFICIENT_AMOUNT_DAI } from '../const/messages';
+import { ERROR_INSUFFICIENT_AMOUNT_DAI, ERROR_ZERO_DAI_AMOUNT } from '../const/messages';
 
 const SwapPanel = () => {
   const { notifyError } = useNotification()
@@ -37,14 +37,21 @@ const SwapPanel = () => {
   }
 
   const handleSwap = async () => {
-    if (Number(daiAmount) > daiBalance) {
+    const daiNumber = Number(daiAmount)
+
+    if (daiNumber === 0) {
+      notifyError(ERROR_ZERO_DAI_AMOUNT)
+      return
+    }
+
+    if (daiNumber > daiBalance) {
       notifyError(ERROR_INSUFFICIENT_AMOUNT_DAI)
       return
     }
 
     setIsInSwap(true)
 
-    await swapDaiWithEth(Number(daiAmount))
+    await swapDaiWithEth(daiNumber)
 
     setIsInSwap(false)
   }
@@ -65,7 +72,7 @@ const SwapPanel = () => {
           </Typography>
         </Grid>
         <Grid item sx={{ position: 'relative' }}>
-          <Paper elevation={8}>
+          <Paper elevation={8} className="crypto-input-wrapper-DAI">
             <CryptoInput
               label="DAI"
               logoUrl={logoDai}
@@ -78,6 +85,7 @@ const SwapPanel = () => {
                   Balance: {formatNumber(daiBalance)}
                 </Typography>
                 <Chip
+                  className="btn-swap-max-dai"
                   clickable
                   label="Max"
                   size="small"
@@ -106,7 +114,7 @@ const SwapPanel = () => {
           </Button>
         </Grid>
         <Grid item>
-          <Paper elevation={8}>
+          <Paper elevation={8} className="crypto-input-wrapper-ETH">
             <CryptoInput
               label="ETH"
               logoUrl={logoEth}
@@ -129,6 +137,7 @@ const SwapPanel = () => {
         </Grid>
         <Grid item>
           <LoadingButton
+            className="btn-swap"
             variant="contained"
             size="large"
             fullWidth
