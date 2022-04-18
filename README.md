@@ -12,8 +12,7 @@ This project demonstrates the usage of web3/ethers to interact with Smart Contra
 - TypeChain
 
 ## Networks
-- The project interacts with Ethereum Mainnet on production.
-- The project interacts with Ropsten Testnet on development environment.
+The project interacts with Ropsten Testnet.
 
 ## Node Version & Package Manager
 - The project runs on Node.js >= 14
