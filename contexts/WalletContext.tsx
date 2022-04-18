@@ -7,6 +7,7 @@ import { Dai__factory } from '../types/ethers-contracts'
 import useNotification from '../hooks/useNotification'
 import { daiAddress } from '../const';
 import { wei2Number } from '../utils/helper';
+import { ERROR_WALLET_DISCONNECTED } from '../const/messages';
 
 type Provider = Web3Provider | null;
 
@@ -66,11 +67,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
       const provider = new Web3Provider(connection)
 
       initializeProvider(provider)
-
       return provider
     } catch (err) {
-      console.log(err)
-      notifyError('Failed to connect Wallet')
+      notifyError(err.message || 'Failed to connect Wallet')
     }
 
     return null
@@ -87,7 +86,7 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
     setEthBalance(wei2Number(eth))
     setDaiBalance(wei2Number(dai))
-  }, [provider])
+  }, [provider, walletAddress])
 
   // Restore provider if wallet had been connected.
   useEffect(() => {
@@ -96,6 +95,13 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
       initializeProvider(provider)
     } catch {}
   }, [])
+
+  // Update balance when account is changed.
+  useEffect(() => {
+    if (walletAddress) {
+      updateBalance()
+    }
+  }, [walletAddress])
 
   // Define Event Listeners for the provider.
   useEffect(() => {
@@ -129,6 +135,23 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
       provider.on(topicSetsFrom, () => {
         updateBalance()
+      })
+
+      // Monitor wallet disconnection.
+      const { ethereum } = window
+
+      ethereum.on('accountsChanged', (accounts: string[]) => {
+        if (accounts.length === 0) {
+          notifyError(ERROR_WALLET_DISCONNECTED)
+
+          setProvider(null)
+          setEthBalance(null)
+          setDaiBalance(null)
+          setReady(false)
+          return
+        }
+
+        setWalletAddress(accounts[0])
       })
     })()
 

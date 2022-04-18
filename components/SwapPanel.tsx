@@ -72,7 +72,7 @@ const SwapPanel = () => {
               amount={daiAmount}
               onChangeAmount={handleChangeDai}
             />
-            {daiBalance && (
+            {daiBalance !== null && (
               <Box display="flex" justifyContent="flex-end" alignItems="center" mt={1}>
                 <Typography align="right" variant="body2" color="text.disabled">
                   Balance: {formatNumber(daiBalance)}
@@ -113,7 +113,7 @@ const SwapPanel = () => {
               amount={ethAmount}
               onChangeAmount={handleChangeEth}
             />
-            {ethBalance && (
+            {ethBalance !== null && (
               <Typography align="right" variant="body2" color="text.disabled" sx={{ mt: 1 }}>
                 Balance: {formatNumber(ethBalance)}
               </Typography>

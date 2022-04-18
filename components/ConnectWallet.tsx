@@ -20,7 +20,7 @@ const ConnectWallet: FC = () => {
   return (
     <Grid container spacing={1} justifyContent="flex-end">
       <Grid item>
-        {ethBalance && (
+        {ethBalance !== null && (
           <Chip
             clickable
             variant="outlined"
@@ -33,7 +33,7 @@ const ConnectWallet: FC = () => {
         )}
       </Grid>
       <Grid item>
-        {daiBalance && (
+        {daiBalance !== null && (
           <Chip
             clickable
             variant="outlined"
