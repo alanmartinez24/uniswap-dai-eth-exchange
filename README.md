@@ -35,6 +35,17 @@ yarn dev
 
 As a result, you will see a server running at `http://localhost:3000`
 
+## Test
+You can run unit tests by running
+```bash
+yarn test
+```
+
+You can run e2e tests by running
+```bash
+yarn cypress:run
+```
+
 ## Usage of TypeChain
 All ABI files are stored in `abi` directory, whenever you make changes, you need to run
 ```bash
