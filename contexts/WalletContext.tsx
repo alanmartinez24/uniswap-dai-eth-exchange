@@ -1,7 +1,7 @@
 import React, { FC, ReactNode, useCallback, useEffect, useState } from 'react'
 import Web3Modal from 'web3modal'
 import { ethers } from 'ethers'
-import { Network, Web3Provider } from '@ethersproject/providers'
+import { Web3Provider } from '@ethersproject/providers'
 
 import { Dai__factory } from '../types/ethers-contracts'
 import useNotification from '../hooks/useNotification'
@@ -41,8 +41,6 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
   const [ethBalance, setEthBalance] = useState<number>(null)
   const [daiBalance, setDaiBalance] = useState<number>(null)
 
-
-
   // Initialize context with provider
   const initializeProvider = async (provider: Web3Provider) => {
     const accounts = await provider.listAccounts()
@@ -51,7 +49,6 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
     if (accounts.length === 0) {
       return
     }
-    console.log('come here')
 
     const network = await provider.getNetwork()
 
@@ -100,9 +97,7 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
   // Restore provider if wallet had been connected.
   useEffect(() => {
-    console.log('hello there')
     try {
-      console.log('hello')
       const provider = new Web3Provider(window.ethereum, 'any')
       initializeProvider(provider)
     } catch {}
@@ -151,8 +146,6 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
       provider.on(topicSetsFrom, () => {
         updateBalance()
       })
-
-      provider.on('accountsChanged', () => console.log('Hello net change'))
     })()
 
     return () => provider.removeAllListeners()

@@ -6,8 +6,6 @@ import {
   Dai__factory,
   IUniswapV2Factory__factory,
   IUniswapV2Pair__factory,
-  IUniswapV2Router02,
-  IUniswapV2Pair,
   IUniswapV2Router02__factory
 } from '../types/ethers-contracts'
 import { daiAddress, transactionTimeLimitInSeconds, uniswapRouterAddress } from '../const';
@@ -26,7 +24,6 @@ interface DaiSwapContextInterface {
   swapDaiWithEth: (daiAmount: number) => Promise<void>;
   ethPrice: number | null;
   daiPrice: number | null;
-  ready: boolean;
 }
 
 const defaultContext = {
@@ -34,8 +31,7 @@ const defaultContext = {
   getDaiOutput: () => Promise.resolve(0),
   swapDaiWithEth: () => Promise.resolve(),
   ethPrice: null,
-  daiPrice: null,
-  ready: false
+  daiPrice: null
 }
 
 const DaiSwapContext = React.createContext<DaiSwapContextInterface>(defaultContext)
@@ -48,47 +44,51 @@ export const DaiSwapContextProvider: FC<DaiSwapContextProviderProps> = ({ childr
   const { provider, walletAddress } = useWallet()
   const { notifyError, notifySuccess } = useNotification()
 
-  const [ready, setReady] = useState(false)
   const [isInUpdateUnitPrice, setIsInUpdateUnitPrice] = useState(false)
-  const [routerContract, setRouterContract] = useState<IUniswapV2Router02>(null)
-  const [pairContract, setPairContract] = useState<IUniswapV2Pair>(null)
   const [ethPrice, setEthPrice] = useState<number>(null) // ETH price in DAI
   const [daiPrice, setDaiPrice] = useState<number>(null) // DAI price in ETH
 
   // Update unit price
   const updateUnitPrice = async () => {
-    if (!routerContract || isInUpdateUnitPrice) {
+    if (!provider || isInUpdateUnitPrice) {
       return
     }
 
     setIsInUpdateUnitPrice(true)
 
-    setEthPrice(await getUniswapDaiOutput(routerContract, 1))
-    setDaiPrice(await getUniswapEthOutput(routerContract, 1))
+    const router = IUniswapV2Router02__factory.connect(uniswapRouterAddress, provider!)
+
+    setEthPrice(await getUniswapDaiOutput(router, 1))
+    setDaiPrice(await getUniswapEthOutput(router, 1))
 
     setIsInUpdateUnitPrice(false)
   }
 
   const getEthOutput = useCallback(async (daiAmount: number) => {
-    if (!ready) return null
+    if (!provider) return null
     if (daiAmount === 0) return 0
 
-    return await getUniswapEthOutput(routerContract, daiAmount)
-  }, [routerContract])
+    const router = IUniswapV2Router02__factory.connect(uniswapRouterAddress, provider!)
+
+    return await getUniswapEthOutput(router, daiAmount)
+  }, [provider])
 
   const getDaiOutput = useCallback(async (ethAmount: number) => {
-    if (!ready) return null
+    if (!provider) return null
     if (ethAmount === 0) return 0
 
-    return await getUniswapDaiOutput(routerContract, ethAmount)
-  }, [routerContract])
+    const router = IUniswapV2Router02__factory.connect(uniswapRouterAddress, provider!)
+
+    return await getUniswapDaiOutput(router, ethAmount)
+  }, [provider])
 
   const swapDaiWithEth = useCallback(async (daiAmount: number) => {
-    if (!routerContract) {
+    if (!provider) {
       notifyError(ERROR_WALLET_NOT_CONNECTED)
       return
     }
 
+    const routerContract = IUniswapV2Router02__factory.connect(uniswapRouterAddress, provider!.getSigner())
     const swapAmount = ethers.utils.parseEther(String(daiAmount))
     const daiContract = Dai__factory.connect(daiAddress, provider!.getSigner())
 
@@ -128,53 +128,30 @@ export const DaiSwapContextProvider: FC<DaiSwapContextProviderProps> = ({ childr
     } catch (err) {
       notifyError(err.message || ERROR_TRANSACTION_FAILED)
     }
-  }, [routerContract])
+  }, [provider])
 
   // Initialize contracts and parameters from the provider.
   useEffect(() => {
-    if (provider) {
-      (async function() {
-        const router = IUniswapV2Router02__factory.connect(uniswapRouterAddress, provider.getSigner())
-        const wethAddress = await router.WETH()
-
-        const factoryAddress = await router.factory()
-        const factory = IUniswapV2Factory__factory.connect(factoryAddress, provider)
-
-        const pairAddress = await factory.getPair(wethAddress, daiAddress)
-        const pair = IUniswapV2Pair__factory.connect(pairAddress, provider)
-
-        setRouterContract(router)
-        setPairContract(pair)
-        setReady(true)
-      })()
-    } else {
-      setRouterContract(null)
-      setPairContract(null)
-      setReady(false)
-    }
-  }, [provider])
-
-  // Initialize unit price when contract entity is created.
-  useEffect(() => {
-    if (routerContract) {
-      updateUnitPrice()
-    } else {
-      setEthPrice(null)
-      setDaiPrice(null)
-    }
-  }, [routerContract])
-
-  // Monitor events from Uniswap ETH/DAI pair contract.
-  useEffect(() => {
-    if (!pairContract) {
+    if (!provider) {
       return
     }
 
-    // Whenever swap happens, update prices
-    pairContract.on("Swap", () => {
-      updateUnitPrice()
-    })
-  }, [pairContract])
+    (async function() {
+
+      const router = IUniswapV2Router02__factory.connect(uniswapRouterAddress, provider)
+      const wethAddress = await router.WETH()
+
+      const factoryAddress = await router.factory()
+      const factory = IUniswapV2Factory__factory.connect(factoryAddress, provider)
+
+      const pairAddress = await factory.getPair(wethAddress, daiAddress)
+      const pair = IUniswapV2Pair__factory.connect(pairAddress, provider)
+
+      pair.on('Swap', updateUnitPrice)
+
+      await updateUnitPrice()
+    })()
+  }, [provider])
 
   return (
     <DaiSwapContext.Provider
@@ -183,8 +160,7 @@ export const DaiSwapContextProvider: FC<DaiSwapContextProviderProps> = ({ childr
         getDaiOutput,
         swapDaiWithEth,
         ethPrice,
-        daiPrice,
-        ready
+        daiPrice
       }}
     >
       {children}

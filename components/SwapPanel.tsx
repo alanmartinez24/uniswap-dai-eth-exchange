@@ -15,8 +15,8 @@ import { ERROR_INSUFFICIENT_AMOUNT_DAI } from '../const/messages';
 
 const SwapPanel = () => {
   const { notifyError } = useNotification()
-  const { daiBalance, ethBalance } = useWallet()
-  const { ready, ethPrice, daiPrice, getEthOutput, getDaiOutput, swapDaiWithEth } = useDaiSwap()
+  const { provider, daiBalance, ethBalance } = useWallet()
+  const { ethPrice, daiPrice, getEthOutput, getDaiOutput, swapDaiWithEth } = useDaiSwap()
 
   const [daiAmount, setDaiAmount] = useState('0.0')
   const [ethAmount, setEthAmount] = useState('0.0')
@@ -133,13 +133,13 @@ const SwapPanel = () => {
             size="large"
             fullWidth
             sx={{ borderRadius: 3 }}
-            disabled={!ready}
+            disabled={!provider}
             loading={isInSwap}
             onClick={handleSwap}
           >
             Swap
           </LoadingButton>
-          {!ready  && (
+          {!provider  && (
             <Typography align="center" color="error" sx={{ mt: 1 }}>
               Please connect wallet to use swap.
             </Typography>

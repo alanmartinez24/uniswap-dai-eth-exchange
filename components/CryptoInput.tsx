@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 import { Avatar, Box, InputBase } from '@mui/material';
 
-import { useDaiSwap } from '../contexts/DaiSwapContext';
+import { useWallet } from '../contexts/WalletContext';
 
 interface CryptoInputProps {
   label: string;
@@ -13,7 +13,7 @@ interface CryptoInputProps {
 }
 
 const CryptoInput: FC<CryptoInputProps> = ({ amount, onChangeAmount, label, logoUrl }) => {
-  const { ready } = useDaiSwap()
+  const { provider } = useWallet()
 
   const handleChange = (event: ChangeEvent) => {
     const value = Number(event.target.value)
@@ -27,10 +27,11 @@ const CryptoInput: FC<CryptoInputProps> = ({ amount, onChangeAmount, label, logo
     <Box display="flex" alignItems="center">
       <InputBase
         fullWidth
+        className={`crypto-input-${label}`}
         onChange={handleChange}
         value={amount}
         sx={{ flex: 1, mr: 1, fontSize: 24 }}
-        disabled={!ready}
+        disabled={!provider}
       />
       <Avatar>
         <Image src={logoUrl} alt={label} />
