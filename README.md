@@ -53,3 +53,5 @@ yarn generate-types
 to use types of Smart Contracts.
 
 ## Deployment
+The project is hosted on Netlify now.<br>
+You can visit [here](https://625de1cc5b75a800ab00187f--voluble-narwhal-4dbfda.netlify.app/) to test out the app on Ropsten Testnet.
